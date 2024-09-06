@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iris Authentication System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.2.31/vue.global.prod.min.js"></script>
+    <style>
+        .fade-enter-active, .fade-leave-active {
+            transition: opacity 0.5s;
+        }
+        .fade-enter-from, .fade-leave-to {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div id="app" class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+        <h1 class="text-3xl font-bold mb-6 text-center text-indigo-600">Iris Authentication</h1>
+
+        <div class="mb-4">
+            <label for="userId" class="block text-sm font-medium text-gray-700">User ID</label>
+            <input type="text" id="userId" v-model="userId" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+        </div>
+
+        <div class="mb-4">
+            <video ref="video" class="w-full h-64 bg-black rounded-lg" autoplay></video>
+            <p v-if="cameraStatus" :class="['mt-2 text-sm', { 'text-green-600': cameraStatus === 'active', 'text-red-600': cameraStatus === 'error' }]">
+                {{ cameraStatusMessage }}
+            </p>
+        </div>
+
+        <div class="flex space-x-4 mb-4">
+            <button @click="captureImage" :disabled="!isCameraReady" class="flex-1 bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">Capture Image</button>
+            <button @click="register" :disabled="!isCameraReady" class="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">Register</button>
+            <button @click="authenticate" :disabled="!isCameraReady" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">Authenticate</button>
+        </div>
+
+        <transition name="fade">
+            <div v-if="message" :class="['p-4 rounded-md mb-4', messageClass]">
+                {{ message }}
+                <p v-if="registrationSuccess" class="mt-2 text-sm font-medium text-indigo-600">
+                    Registration successful! You can now authenticate.
+                </p>
+            </div>
+        </transition>
+
+        <transition name="fade">
+            <div v-if="authResult" :class="['p-4 rounded-md text-center text-xl font-bold', { 'bg-green-100 text-green-700': authResult === 'success', 'bg-red-100 text-red-700': authResult === 'failure' }]">
+                <p v-if="authResult === 'success'">Authentication Successful!</p>
+                <p v-else-if="authResult === 'failure'">Authentication Failed!</p>
+            </div>
+        </transition>
+    </div>
+
+    <script>
+        const { createApp, ref, computed } = Vue
+
+        createApp({
+            setup() {
+                const userId = ref('')
+                const video = ref(null)
+                const message = ref('')
+                const messageType = ref('')
+                const cameraStatus = ref('')
+                const cameraStatusMessage = ref('')
+                const registrationSuccess = ref(false)
+                const authResult = ref('')
+
+                const messageClass = computed(() => {
+                    return {
+                        'bg-green-100 text-green-700': messageType.value === 'success',
+                        'bg-red-100 text-red-700': messageType.value === 'error'
+                    }
+                })
+
+                const isCameraReady = computed(() => cameraStatus.value === 'active')
+
+                const apiUrl = 'http://127.0.0.1:5000'
+
+                const captureImage = () => {
+                    console.log("Capturing image...")
+                    const canvas = document.createElement('canvas')
+                    canvas.width = video.value.videoWidth
+                    canvas.height = video.value.videoHeight
+                    canvas.getContext('2d').drawImage(video.value, 0, 0)
+                    const imageData = canvas.toDataURL('image/jpeg')
+                    console.log("Image captured. Data URL length:", imageData.length)
+                    return imageData
+                }
+
+                const register = async () => {
+                    console.log("Starting registration process...")
+                    const image = captureImage()
+                    try {
+                        const response = await fetch(`${apiUrl}/register`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ userId: userId.value, image })
+                        })
+                        const data = await response.json()
+                        console.log("Registration response:", data)
+                        message.value = data.message
+                        messageType.value = data.success ? 'success' : 'error'
+                        registrationSuccess.value = data.success
+                        authResult.value = ''  // Clear previous auth result
+                    } catch (error) {
+                        console.error("Registration error:", error)
+                        message.value = "An error occurred during registration"
+                        messageType.value = 'error'
+                        registrationSuccess.value = false
+                        authResult.value = ''  // Clear previous auth result
+                    }
+                }
+
+                const authenticate = async () => {
+                    console.log("Starting authentication process...")
+                    const image = captureImage()
+                    try {
+                        const response = await fetch(`${apiUrl}/authenticate`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ userId: userId.value, image })
+                        })
+                        const data = await response.json()
+                        console.log("Authentication response:", data)
+                        message.value = data.message
+                        messageType.value = data.success ? 'success' : 'error'
+                        authResult.value = data.success ? 'success' : 'failure'
+                        registrationSuccess.value = false
+                    } catch (error) {
+                        console.error("Authentication error:", error)
+                        message.value = "An error occurred during authentication"
+                        messageType.value = 'error'
+                        authResult.value = 'failure'
+                    }
+                }
+
+                const startCamera = () => {
+                    cameraStatus.value = 'connecting'
+                    cameraStatusMessage.value = 'Connecting to camera...'
+                    navigator.mediaDevices.getUserMedia({ video: true })
+                        .then(stream => {
+                            video.value.srcObject = stream
+                            cameraStatus.value = 'active'
+                            cameraStatusMessage.value = 'Camera is active'
+                            console.log('Camera connected successfully')
+                        })
+                        .catch(error => {
+                            console.error('Error accessing the webcam', error)
+                            cameraStatus.value = 'error'
+                            cameraStatusMessage.value = `Error accessing the webcam: ${error.message}`
+                            message.value = 'Error accessing the webcam. Please check your camera permissions.'
+                            messageType.value = 'error'
+                        })
+                }
+
+                startCamera()
+
+                return {
+                    userId,
+                    video,
+                    message,
+                    messageClass,
+                    cameraStatus,
+                    cameraStatusMessage,
+                    isCameraReady,
+                    registrationSuccess,
+                    authResult,
+                    captureImage,
+                    register,
+                    authenticate
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>
