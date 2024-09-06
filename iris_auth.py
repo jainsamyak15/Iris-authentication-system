@@ -169,10 +169,10 @@ class IrisAuthenticationSystem:
             euclidean_threshold = 0.3
             cosine_threshold = 0.8
 
-            # Initialize a counter for passed metrics
+
             passed_metrics = 0
 
-            # Check each condition and increment the counter if it passes
+
             if best_hamming < hamming_threshold:
                 passed_metrics += 1
             if best_euclidean < euclidean_threshold:
