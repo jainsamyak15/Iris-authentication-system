@@ -7,7 +7,7 @@ from iris_auth import IrisAuthenticationSystem
 import logging
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "http://127.0.0.1:8000"}})
+CORS(app, resources={r"/*": {"origins": "http://127.0.0.1:5000"}})
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)

@@ -41,15 +41,16 @@
             <div v-if="message" :class="['p-4 rounded-md mb-4', messageClass]">
                 {{ message }}
                 <p v-if="registrationSuccess" class="mt-2 text-sm font-medium text-indigo-600">
-                    Registration successful! You can now authenticate.
+                    User Registered Successfully, Now you can Authenticate.
                 </p>
+                <p v-else>Please Register Again &#128517;</p>
             </div>
         </transition>
 
         <transition name="fade">
             <div v-if="authResult" :class="['p-4 rounded-md text-center text-xl font-bold', { 'bg-green-100 text-green-700': authResult === 'success', 'bg-red-100 text-red-700': authResult === 'failure' }]">
-                <p v-if="authResult === 'success'">Authentication Successful!</p>
-                <p v-else-if="authResult === 'failure'">Authentication Failed!</p>
+                <p v-if="authResult === 'success'">Authentication Successful</p>
+                <p v-else-if="authResult === 'failure'">Authentication failed, Please try again. &#128517;</p>
             </div>
         </transition>
     </div>
@@ -77,7 +78,7 @@
 
                 const isCameraReady = computed(() => cameraStatus.value === 'active')
 
-                const apiUrl = 'http://127.0.0.1:8000'
+                const apiUrl = 'http://127.0.0.1:5000'
 
                 const captureImage = () => {
                     console.log("Capturing image...")
