@@ -5,9 +5,10 @@ import numpy as np
 import base64
 from iris_auth import IrisAuthenticationSystem
 import logging
+import os
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "http://127.0.0.1:8000"}})
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -76,4 +77,5 @@ def authenticate():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 8000))
+    app.run(debug=True,host='0.0.0.0', port=port)
