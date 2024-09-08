@@ -8,8 +8,8 @@ import torch
 
 class IrisAuthenticationSystem:
     def __init__(self, eye_model_path, iris_model_path):
-        self.eye_model_path = eye_model_path
-        self.iris_model_path = iris_model_path
+        self.eye_model = YOLO(eye_model_path)
+        self.iris_model = YOLO(iris_model_path)
         self.templates = {}
         self.feature_size = 10000  # Adjust this based on your needs
 
@@ -33,8 +33,7 @@ class IrisAuthenticationSystem:
 
     def detect_eyes(self, image):
         try:
-            eye_model = YOLO(self.eye_model_path)
-            results = eye_model(image)
+            results = self.eye_model(image)
             eyes = []
             for r in results:
                 boxes = r.boxes
@@ -49,8 +48,7 @@ class IrisAuthenticationSystem:
 
     def segment_iris(self, eye_image):
         try:
-            iris_model = YOLO(self.iris_model_path)
-            results = iris_model(eye_image)
+            results = self.iris_model(eye_image)
             for r in results:
                 masks = r.masks
                 if masks is not None:
@@ -96,7 +94,6 @@ class IrisAuthenticationSystem:
                 return False, "No eyes detected"
 
             features = []
-            eyes = eyes[0:1]
             for eye in eyes:
                 x1, y1, x2, y2 = eye
                 eye_image = preprocessed[y1:y2, x1:x2]
