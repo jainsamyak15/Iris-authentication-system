@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, send_file,render_template
 from flask_cors import CORS
 import cv2
 import numpy as np
@@ -20,7 +20,7 @@ auth_system = IrisAuthenticationSystem(eye_model_path, iris_model_path)
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return send_file('index.html')
 
 
 @app.route('/register', methods=['POST', 'OPTIONS'])
