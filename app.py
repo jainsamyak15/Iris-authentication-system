@@ -9,7 +9,6 @@ import logging
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://127.0.0.1:5000"}})
 
-# Set up logging
 logging.basicConfig(level=logging.DEBUG)
 
 eye_model_path = 'weights/best (8).pt'
