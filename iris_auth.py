@@ -11,22 +11,19 @@ class IrisAuthenticationSystem:
         self.eye_model = YOLO(eye_model_path)
         self.iris_model = YOLO(iris_model_path)
         self.templates = {}
-        self.feature_size = 10000  # Adjust this based on your needs
+        self.feature_size = 10000
 
     def preprocess_image(self, image):
         if image is None:
             raise ValueError("Input image is None")
 
-        # Ensure image is in BGR format
         if len(image.shape) == 2:
             image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
         elif image.shape[2] == 4:
             image = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)
 
-        # Convert to RGB (YOLO models typically expect RGB)
         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-        # Resize image to a size that YOLO expects (e.g., 640x640)
         image_resized = cv2.resize(image_rgb, (640, 640))
 
         return image_resized
@@ -75,7 +72,6 @@ class IrisAuthenticationSystem:
             # Flatten and normalize
             features = resized.flatten() / 255.0
 
-            # Pad or truncate to ensure consistent size
             if len(features) > self.feature_size:
                 features = features[:self.feature_size]
             elif len(features) < self.feature_size:
@@ -124,7 +120,7 @@ class IrisAuthenticationSystem:
             return hamming_dist, euclidean_dist, cosine_sim
         except Exception as e:
             print(f"Error in match_templates: {str(e)}")
-            return 1.0, float('inf'), 0.0  # Worst case values
+            return 1.0, float('inf'), 0.0
 
     def authenticate(self, user_id, image):
         try:
@@ -164,7 +160,7 @@ class IrisAuthenticationSystem:
             print(f"Best Euclidean distance: {best_euclidean}")
             print(f"Best Cosine similarity: {best_cosine}")
 
-            # Set thresholds for each metric
+            # Setting thresholds for each metric
             hamming_threshold = 0.2
             euclidean_threshold = 0.3
             cosine_threshold = 0.8
@@ -177,7 +173,7 @@ class IrisAuthenticationSystem:
                 passed_metrics += 1
             if best_euclidean < euclidean_threshold:
                 passed_metrics += 1
-            if best_cosine > cosine_threshold:  # Assuming higher cosine similarity is better
+            if best_cosine > cosine_threshold:
                 passed_metrics += 1
 
             # Authentication is successful if at least two conditions are met
